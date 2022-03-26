@@ -64,6 +64,12 @@ private:
 	 *  Try to make your hash function so that the distribution is uniform over all buckets
 	 */
 	unsigned int hash(string key) const;
+    /*
+     * ADDED FUNCTION
+     * Return pointer to node with given key
+     * Backend for `get` and [] operator functions
+     */
+    Node* at(const string& key) const;
 public:
 	Hashmap();
 	~Hashmap();

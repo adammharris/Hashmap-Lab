@@ -15,7 +15,7 @@ Hashmap::~Hashmap() {
 unsigned int Hashmap::hash(string key) const {
   unsigned hashed = 0;
   unsigned numPrimes = 6;
-  unsigned primeNums[numPrimes] = {2,3,5,7,11,13};
+  unsigned primeNums[] = {2,3,5,7,11,13};
   for (char& c : key) {
     unsigned currentPrime = primeNums[c % numPrimes];
     hashed += currentPrime * c;
@@ -24,54 +24,61 @@ unsigned int Hashmap::hash(string key) const {
   return hashed % BUCKETS;
 }
 void Hashmap::insert(string key, int value) {
-  Node*& currentNode = buckets[hash(key)];
-  if (currentNode != nullptr) {
-    while (currentNode->next != nullptr) {
-      currentNode = currentNode->next;
-    }
-  } else {
-    currentNode = new Node();
-    currentNode->value = value;
-    currentNode->key = key;
+  Node*& initial = buckets[hash(key)];
+  cout << "inserting " << value << " at key " << key << " in bucket " << hash(key) << "…";
+  if (initial != nullptr) {
+      Node* currentNode = initial;
+      while (currentNode->next != nullptr) {
+          if (currentNode->key == key) {
+              currentNode->value = value;
+              cout << "Success! Changed value of node!" << endl;
+              return;
+          }
+          currentNode = currentNode->next;
+      }
+    currentNode->next = new Node();
+    currentNode->next->value = value;
+    currentNode->next->key = key;
     mapSize++;
+    cout << "success! appended node!" << endl;
     return;
   }
-  currentNode->next = new Node();
-  currentNode->next->value = value;
-  currentNode->next->key = key;
+  initial = new Node();
+  initial->value = value;
+  initial->key = key;
   mapSize++;
-  //cout << "inserted " << value << " at key " << key << " in bucket " << hash(key) << endl;
+  cout << "success! first node!" << endl;
+  return;
 }
 bool Hashmap::contains(string key) const {
-  return buckets[hash(key)] != nullptr;
+    Node* currentNode = buckets[hash(key)];
+    while (currentNode != nullptr) {
+        if (currentNode->key == key) {
+            return true;
+        }
+        currentNode = currentNode->next;
+    }
+    return false;
+}
+Hashmap::Node* Hashmap::at(const std::string& key) const {
+    Node* looper = buckets[hash(key)];
+    if (looper == nullptr) {
+        cout << "invalid for " << key << " at bucket " << hash(key) << endl;
+        throw(std::invalid_argument("No value found for key"));
+    }
+    while (looper->key != key) {
+        looper = looper->next;
+        if (looper == nullptr) {
+            throw(std::invalid_argument("No value found for key"));
+        }
+    }
+    return looper;
 }
 int Hashmap::get(string key) const {
-  Node* currentNode = buckets[hash(key)];
-  if (currentNode == nullptr) {
-    cout << "invalid for " << key << " at bucket " << hash(key) << endl;
-    throw(std::invalid_argument("No value found for key"));
-  }
-  while (currentNode->key != key) {
-    currentNode = currentNode->next;
-    if (currentNode == nullptr) {
-      throw(std::invalid_argument("No value found for key"));
-    }
-  }
-  return currentNode->value;
+  return at(key)->value;
 }
 int& Hashmap::operator [](string key) {
-  Node* currentNode = buckets[hash(key)];
-  if (currentNode == nullptr) {
-    cout << "invalid for " << key << " at bucket " << hash(key) << endl;
-    throw(std::invalid_argument("No value found for key"));
-  }
-  while (currentNode->key != key) {
-    currentNode = currentNode->next;
-    if (currentNode == nullptr) {
-      throw(std::invalid_argument("No value found for key"));
-    }
-  }
-  return currentNode->value;
+  return at(key)->value;
 }
 bool Hashmap::remove(string key) {
   return false;
@@ -82,19 +89,20 @@ void Hashmap::clear() {
 string Hashmap::toString() const {
   int index = 0;
   Node* currentNode = buckets[index];
-  stringstream ss("[0]");
+  std::stringstream ss;
   if (size() == 0) {
+      ss << "[0]" << endl;
     return ss.str();
   }
-  while (index != size()) {
-    ss << '[' << index << "] ";
-    do {
-      ss << currentNode->key << " => " << currentNode->value;
-      if (currentNode->next != nullptr) {
-        ss << ", ";
-      }
-      currentNode = currentNode->next;
-    } while (currentNode != nullptr);
+  while (index != BUCKETS) {
+    ss << '[' << index << "]";
+    while (currentNode != nullptr) {
+        ss << ' ' << currentNode->key << " => " << currentNode->value;
+        if (currentNode->next != nullptr) {
+            ss << ", ";
+        }
+        currentNode = currentNode->next;
+    }
     ss << endl;
     index++;
     currentNode = buckets[index];
