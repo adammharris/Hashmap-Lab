@@ -1,5 +1,4 @@
 #include "Hashmap.h"
-//#include <stdexcept>
 
 Hashmap::Hashmap() {
   //Initialize buckets[i] = NULL for each i (0 <= i < BUCKETS)
@@ -10,7 +9,7 @@ Hashmap::Hashmap() {
   mapSize = 0;
 }
 Hashmap::~Hashmap() {
-  
+  clear();
 }
 unsigned int Hashmap::hash(string key) const {
   unsigned hashed = 0;
@@ -122,6 +121,7 @@ void Hashmap::clear() {
           remove(buckets[i]->key);
       }
   }
+  mapSize = 0;
 }
 string Hashmap::toString() const {
   int index = 0;
@@ -150,5 +150,20 @@ int Hashmap::size() const {
   return mapSize;
 }
 string Hashmap::toSortedString() const {
-  return "Not functional";
+    stringstream ss;
+    priority_queue<Node*, vector<Node*>, NodeCompare> nodeHeap;
+    for (unsigned i = 0; i < BUCKETS; i++) {
+        Node* currentNode = buckets[i];
+        while (currentNode != nullptr) {
+            nodeHeap.push(currentNode);
+            currentNode = currentNode->next;
+        }
+    }
+    while(!nodeHeap.empty())
+    {
+        Node* top = nodeHeap.top(); // Get top node (next node in sorted order)
+        ss << top->key << " => " << top->value << endl; // Add node data to stringstream
+        nodeHeap.pop(); // Pop it off
+    }
+    return ss.str();
 }
