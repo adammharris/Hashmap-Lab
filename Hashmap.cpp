@@ -20,18 +20,19 @@ unsigned int Hashmap::hash(string key) const {
     unsigned currentPrime = primeNums[c % numPrimes];
     hashed += currentPrime * c;
   }
-  //cout << "Result of key " << key << ": " << hashed%BUCKETS << endl;
   return hashed % BUCKETS;
 }
 void Hashmap::insert(string key, int value) {
   Node*& initial = buckets[hash(key)];
-  cout << "inserting " << value << " at key " << key << " in bucket " << hash(key) << "…";
   if (initial != nullptr) {
+      if (initial->key == key) {
+          initial->value = value;
+          return;
+      }
       Node* currentNode = initial;
       while (currentNode->next != nullptr) {
-          if (currentNode->key == key) {
-              currentNode->value = value;
-              cout << "Success! Changed value of node!" << endl;
+          if (currentNode->next->key == key) {
+              currentNode->next->value = value;
               return;
           }
           currentNode = currentNode->next;
@@ -40,14 +41,12 @@ void Hashmap::insert(string key, int value) {
     currentNode->next->value = value;
     currentNode->next->key = key;
     mapSize++;
-    cout << "success! appended node!" << endl;
     return;
   }
   initial = new Node();
   initial->value = value;
   initial->key = key;
   mapSize++;
-  cout << "success! first node!" << endl;
   return;
 }
 bool Hashmap::contains(string key) const {
@@ -63,7 +62,6 @@ bool Hashmap::contains(string key) const {
 Hashmap::Node* Hashmap::at(const std::string& key) const {
     Node* looper = buckets[hash(key)];
     if (looper == nullptr) {
-        cout << "invalid for " << key << " at bucket " << hash(key) << endl;
         throw(std::invalid_argument("No value found for key"));
     }
     while (looper->key != key) {
