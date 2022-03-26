@@ -76,7 +76,12 @@ int Hashmap::get(string key) const {
   return at(key)->value;
 }
 int& Hashmap::operator [](string key) {
-  return at(key)->value;
+  try {
+      return at(key)->value;
+  } catch (std::invalid_argument ia) {
+      insert(key, 0);
+      return at(key)->value;
+  }
 }
 bool Hashmap::remove(string key) {
   return false;
