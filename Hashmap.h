@@ -64,12 +64,19 @@ private:
 	 *  Try to make your hash function so that the distribution is uniform over all buckets
 	 */
 	unsigned int hash(string key) const;
+
+    /*
+     * ADDED FUNCTION ("possible parent of")
+     * Attempt to find and return pointer of parent of node with given key
+     * If parent is not found, return pointer with given key (it is root of bucket)
+     */
+    Node* pParentOf(const string key) const;
     /*
      * ADDED FUNCTION
-     * Return pointer to node with given key
-     * Backend for `get` and [] operator functions
+     * Return pointer of node with given key
+     * Uses `pParentOf`
      */
-    Node* at(const string& key) const;
+    Node* at(const string key) const;
 public:
 	Hashmap();
 	~Hashmap();

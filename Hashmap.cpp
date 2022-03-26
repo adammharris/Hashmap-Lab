@@ -1,5 +1,5 @@
 #include "Hashmap.h"
-#include <stdexcept>
+//#include <stdexcept>
 
 Hashmap::Hashmap() {
   //Initialize buckets[i] = NULL for each i (0 <= i < BUCKETS)
@@ -59,7 +59,7 @@ bool Hashmap::contains(string key) const {
     }
     return false;
 }
-Hashmap::Node* Hashmap::at(const std::string& key) const {
+Hashmap::Node* Hashmap::pParentOf(const std::string key) const {
     Node* looper = buckets[hash(key)];
     if (looper == nullptr) {
         throw(std::invalid_argument("No value found for key"));
@@ -69,8 +69,21 @@ Hashmap::Node* Hashmap::at(const std::string& key) const {
         if (looper == nullptr) {
             throw(std::invalid_argument("No value found for key"));
         }
+        if (looper->next != nullptr) {
+            if (looper->next->key == key) {
+                return looper;
+            }
+        }
     }
     return looper;
+}
+Hashmap::Node* Hashmap::at(const std::string key) const {
+    Node* possibleParent = pParentOf(key);
+    if (possibleParent->key == key) { // not parent
+        return possibleParent;
+    } else { // is parent
+        return possibleParent->next;
+    }
 }
 int Hashmap::get(string key) const {
   return at(key)->value;
@@ -84,10 +97,31 @@ int& Hashmap::operator [](string key) {
   }
 }
 bool Hashmap::remove(string key) {
-  return false;
+    Node* parent;
+    try {
+        parent = pParentOf(key);
+    } catch (std::invalid_argument ia) {
+        return false;
+    }
+    if (parent->key == key) { // Check in case root needs removal
+        Node* child = parent->next;
+        buckets[hash(key)] = child; // Can I prevent calling hash again?
+        mapSize--;
+        delete parent;
+        return true;
+    }
+    Node* replace = parent->next->next;
+    delete parent->next;
+    parent->next = replace;
+    mapSize--;
+    return true;
 }
 void Hashmap::clear() {
-  
+  for (unsigned i = 0; i < BUCKETS; i++) {
+      while (buckets[i] != nullptr) {
+          remove(buckets[i]->key);
+      }
+  }
 }
 string Hashmap::toString() const {
   int index = 0;
